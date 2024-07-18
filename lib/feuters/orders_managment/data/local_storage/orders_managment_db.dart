@@ -12,7 +12,7 @@ class OrdersManagmentDb{
     List<Map> response =await my_db.rawQuery(sql);
     return response;}
     else{
-      print('There is not DataBase');
+      print('Theresd is not DataBase');
     }
   }
   Future<int> insertData(String sql)async{
