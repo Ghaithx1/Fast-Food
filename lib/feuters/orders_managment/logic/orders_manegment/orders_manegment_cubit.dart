@@ -22,29 +22,49 @@ class OrdersManegmentCubit extends Cubit<OrdersManegmentState> {
     emit(OrdersManegmentState.Loading());
     index = -1;
     List<User> respnse  = await ordersManagmentRepo.GetTheUsersHavenWriteFoodYet();
-    users = respnse;
+    users = respnse ; // await _handelIfTheUsersIsEmpty(respnse);
     NextPerson();
   }
 
 
 
-  void NextPerson()async{
-    index++;
-    if(index == users.length){
-      index = 0;
-    }
-    var response = await ordersManagmentRepo.getFoodByUserId(users[index].id!);
-    var user = await ordersManagmentRepo.getUserById(users[index].id!);
-    
-    usersWithFood = response;
-
-    _sentUserAndFoodToScreenAndHandleIfItEmpty(user);
-    
-
+void NextPerson() async {
+  money = 0;
+  if (users.length == 0) {
+   // fetchUsers();
+   _sentUserAndFoodToScreenAndHandleIfItEmpty(null);
+    return ;
+  }
+  print('I didnt excit' );
+  index++;
+  if (index >= users.length) {
+    index = 0;
   }
 
-  _sentUserAndFoodToScreenAndHandleIfItEmpty(User user){
-    emit(OrdersManegmentState.Loaded(users.isEmpty ? User(name: "Add user",money: 0,taken: false):users[index],usersWithFood,user.money));
+  var response = await ordersManagmentRepo.getFoodByUserId(users[index].id!);
+  var user = await ordersManagmentRepo.getUserById(users[index].id!);
+
+  usersWithFood = response;
+
+  _sentUserAndFoodToScreenAndHandleIfItEmpty(user);
+}
+
+
+  Future<List<User>> _handelIfTheUsersIsEmpty(List<User> users)async{
+    List<User> response = [];
+    if(users.isEmpty){
+      response = await ordersManagmentRepo.GetAllUsers();
+    }
+    if(response.isEmpty) _sentUserAndFoodToScreenAndHandleIfItEmpty(null);
+    return response;
+  }
+
+
+
+
+  _sentUserAndFoodToScreenAndHandleIfItEmpty(User? user){
+    
+    emit(OrdersManegmentState.Loaded(users.isEmpty ? User(name: "Add user",money: 0,taken: false):users[index],usersWithFood,0));
   }
 
 
@@ -86,7 +106,6 @@ class OrdersManegmentCubit extends Cubit<OrdersManegmentState> {
 
 
     var respon = await ordersManagmentRepo.checkIfFoodForUserExistsAndAdd(user, food);
-    print('the list after work is $respon');
     var response = await ordersManagmentRepo.getFoodByUserId(user.id!);
 
     usersWithFood = response;

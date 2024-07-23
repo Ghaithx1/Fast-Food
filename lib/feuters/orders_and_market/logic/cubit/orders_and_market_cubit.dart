@@ -5,66 +5,70 @@ import 'package:fast_food/feuters/orders_and_market/logic/cubit/orders_and_marke
 import 'package:fast_food/feuters/orders_managment/data/model/food.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-
 class OrdersAndMarketCubit extends Cubit<OrdersAndMarketState> {
   OrdersAndMarketRepo ordersAndMarketRepo = OrdersAndMarketRepo();
-  OrdersAndMarketCubit() : super(OrdersAndMarketState.initial()){
+  OrdersAndMarketCubit() : super(OrdersAndMarketState.initial()) {
     fetchData();
   }
-  List<FoodMarket> Foods = [];
+  List<FoodMarket> foods = [];
   String foodToMarket = '';
-  double money = 0 ;
-  void fetchData()async { 
+  double money = 0;
+  void fetchData() async {
     List<FoodMarket> response = await ordersAndMarketRepo.getFoodsToMarket();
-    Foods = response;
-    _sortTheData(response,FoodType.all);
+    foods = response;
+    _sortTheData(foods, FoodType.all);
+  }
+ 
+  void filterTheDataByType(FoodType type)async {
+    foods = await ordersAndMarketRepo.getFoodsToMarket();
+    List<FoodMarket> filterdList = [];
+    for (var food in foods) {
+      if (food.food_type.substring(9) == type.name) {
+        filterdList.add(food);
+      }
+    }
+    print('it might the wrong be from here $foods');
+    _sortTheData(filterdList, type);
   }
 
-  void filterTheDataByType(FoodType type){
-    List<FoodMarket> food = [];
+  void _sortTheData(List<FoodMarket> foods, FoodType food_type) {
     money = 0;
-    for(var foodItem in Foods){
-      print('The food type is ${foodItem.food_type.substring(9)} and the type is ${type.name} \n');
-      if(type.name == FoodType.poca.name || type.name == FoodType.borek.name){  // This method if the type poca get the borek and the borek
-          if(foodItem.food_type.substring(9) == FoodType.poca.name || foodItem.food_type.substring(9) == FoodType.borek.name ){
-            food.add(foodItem);
-            foodToMarket += '${foodItem.food_name} ${foodItem.quantity}\n';
-          }
-      }else if(type.name == FoodType.market.name || type.name == FoodType.coffe.name){  // This method if the type poca get the borek and the borek
-          if(foodItem.food_type.substring(9) == FoodType.market.name || foodItem.food_type.substring(9) == FoodType.coffe.name ){
-            food.add(foodItem);
-          }
-      else if(foodItem.food_type.substring(9) == type.name){
-        food.add(foodItem);
-      }
-    }
-    }
-    print(food);
-    _sortTheData(food,type);
+    foods.sort(
+      (a, b) => a.id!.compareTo(b.id!),
+    );
+    _filterTheDate(foods, food_type);
   }
 
-
-  
-  void _sortTheData(List<FoodMarket> foods,FoodType food_type) {
-    foods.sort((a, b) => a.id!.compareTo(b.id!),);
-    _filterTheDate(foods,food_type);
-    
-  }
-  
-  void _filterTheDate(List<FoodMarket> foods,FoodType food_type) {
-  List<FoodMarket> filteredFood = [];
-    for(var food in foods){
-      if(filteredFood.length == 0){
-        filteredFood.add(food);
-      }else if(food.id == filteredFood[filteredFood.length - 1].id){
-        filteredFood[filteredFood.length - 1].quantity += food.quantity;
-      }else if(food.id != filteredFood[filteredFood.length - 1].id){
-        filteredFood.add(food);
-      }
-      print('add money ${food.food_price}');
-      money += food.food_price * food.quantity;
+  void _filterTheDate(List<FoodMarket> foods, FoodType food_type) {
+    List<FoodMarket> filteredFood = [];
+    filteredFood.add(foods[0]);
+    money += foods[0].food_price * foods[0].quantity;
+    for (var x = 1; x < foods.length; x++) {
+      var currentFood = foods[x];
+      filteredFood = _addOrUpdateFood(filteredFood, currentFood);
+      _writeFoodForPastaneci(currentFood);
+      money += currentFood.food_price * currentFood.quantity;
     }
-    emit(OrdersAndMarketState.loaded(filteredFood,money,food_type,foodToMarket));
-    print(filteredFood);
+    emit(OrdersAndMarketState.loaded(
+        filteredFood, money, food_type, foodToMarket));
+  }
+
+  List<FoodMarket> _addOrUpdateFood(
+      List<FoodMarket> filteredFood, FoodMarket currentFood) {
+    var lastElement = filteredFood.length - 1;
+
+    if (currentFood.id == filteredFood[lastElement].id) {
+      filteredFood[lastElement].quantity += currentFood.quantity;
+    } else {
+      filteredFood.add(currentFood);
+    }
+    return filteredFood;
+  }
+
+  void _writeFoodForPastaneci(FoodMarket currentFood) {
+    if (currentFood.food_type.substring(9) == FoodType.borek.name ||
+        currentFood.food_type.substring(9) == FoodType.poca.name) {
+      foodToMarket += '${currentFood.food_name} ${currentFood.quantity}\n';
+    }
   }
 }

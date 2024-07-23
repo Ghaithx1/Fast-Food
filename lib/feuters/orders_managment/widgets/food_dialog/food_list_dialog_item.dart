@@ -5,8 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class FoodListDialogItem extends StatelessWidget {
-
-  FoodListDialogItem(this.food,{required this.onPressed,super.key});
+  FoodListDialogItem(this.food, {required this.onPressed, super.key});
   Food food;
   ValueSetter<Food> onPressed;
 
@@ -33,10 +32,14 @@ class FoodListDialogItem extends StatelessWidget {
                   food.name,
                   style: TextStyle(
                     color: Colors.black,
-                    fontSize: 20,
+                    fontSize: 18,
+                    overflow: TextOverflow.ellipsis,
                   ),
+                  maxLines: 1,
                 ),
-                SizedBox(height:10,),
+                SizedBox(
+                  height: 10,
+                ),
                 Text(
                   textAlign: TextAlign.center,
                   food.price.toString(),
