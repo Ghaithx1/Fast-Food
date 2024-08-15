@@ -71,4 +71,16 @@ class OrdersAndMarketCubit extends Cubit<OrdersAndMarketState> {
       foodToMarket += '${currentFood.food_name} ${currentFood.quantity}\n';
     }
   }
+
+  void filterTheDataByBothType(FoodType type1, FoodType type2) async {
+        foods = await ordersAndMarketRepo.getFoodsToMarket();
+    List<FoodMarket> filterdList = [];
+    for (var food in foods) {
+      if (food.food_type.substring(9) == type1.name ||food.food_type.substring(9) == type2.name ) {
+        filterdList.add(food);
+      }
+    }
+    print('it might the wrong be from here $foods');
+    _sortTheData(filterdList, type1);
+  }
 }
